@@ -151,9 +151,7 @@ class FormDesignerHost(OrbitPageHost):
             definition = self._parse_definition()
             problems = validate_definition(definition)
             if problems:
-                self.preview_html = (
-                    '<p class="or-danger">' + e("; ".join(problems)) + "</p>"
-                )
+                self.preview_html = '<p class="or-danger">' + e("; ".join(problems)) + "</p>"
                 return
             form = build_form(definition, name="preview")
             self.preview_html = form.render({})

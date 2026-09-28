@@ -42,7 +42,15 @@ class FormFillHost(FormDataMutations, OrbitPageHost):
 
     @classmethod
     def _public_property_names(cls) -> set[str]:
-        return {"data", "form_slug", "error", "success", "select_search", "morph_search", "table_select"}
+        return {
+            "data",
+            "form_slug",
+            "error",
+            "success",
+            "select_search",
+            "morph_search",
+            "table_select",
+        }
 
     def get_panel(self) -> Any:
         return type(self)._panel

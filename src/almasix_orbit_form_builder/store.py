@@ -217,10 +217,7 @@ class DatabaseFormStore:
 
         async def _load() -> FormDefinition | None:
             row = await (
-                self._qb(self.definitions_table)
-                .where("slug", slug)
-                .where("tenant_id", tid)
-                .first()
+                self._qb(self.definitions_table).where("slug", slug).where("tenant_id", tid).first()
             )
             if row is None and tid != GLOBAL_TENANT_ID:
                 row = await (

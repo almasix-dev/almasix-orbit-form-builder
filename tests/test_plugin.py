@@ -59,14 +59,18 @@ def test_registry_covers_orbit_field_and_layout_types() -> None:
 def test_hydrate_round_trip_kitchen_sink() -> None:
     form = Form.make("demo").schema(
         [
-            Section.make("basics").heading("Basics").schema(
+            Section.make("basics")
+            .heading("Basics")
+            .schema(
                 [
                     TextInput.make("name").label("Name").required(),
                     Select.make("status").options({"draft": "Draft", "live": "Live"}),
                     Toggle.make("featured"),
                 ]
             ),
-            Grid.make().columns(2).schema(
+            Grid.make()
+            .columns(2)
+            .schema(
                 [
                     TextInput.make("email").email(),
                     TextInput.make("phone").tel(),
