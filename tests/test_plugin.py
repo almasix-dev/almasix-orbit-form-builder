@@ -117,15 +117,140 @@ def test_designer_host_save_and_preview() -> None:
     host.save()
     assert host.saved is True
     assert host.form_id
+    assert host.status == "draft"
     stored = get_form_store().get_definition(host.form_id)
     assert stored is not None
     assert stored.title == "Contact"
+    assert stored.status == "draft"
     assert "Textarea" in host.definition_json
     host.publish()
     assert get_form_store().get_definition(host.form_id).status == "published"
+    assert host.status == "published"
+    # Save draft forces draft even when currently published
+    host.save()
+    assert get_form_store().get_definition(host.form_id).status == "draft"
     html = host.render()
     assert "Form builder" in html
     assert "Preview" in html
+    assert "readonly" in html.lower() or "JSON" in html or "Canvas" in html
+
+
+def test_designer_nest_delete_move_and_slug_guard() -> None:
+    _seed()
+    panel = Panel.make("app").path("/app")
+    host = FormDesignerHost.bind(panel=panel)()
+    host.new_form()
+    host.slug = "alpha"
+    host.title = "Alpha"
+    # Replace starter field with Section → Grid → fields
+    host.delete_path("0")
+    host.add_field("Section")
+    host.select("0")
+    host.add_field("Grid")
+    host.select("0.schema.0")
+    host.props = {**host.props, "columns": "2"}
+    host.apply_inspector()
+    host.add_field("TextInput")
+    host.add_field("TextInput")
+    assert "Grid" in host.definition_json
+    host.delete_selected()
+    host.save()
+    assert host.saved
+    # Second form cannot reuse slug
+    host2 = FormDesignerHost.bind(panel=panel)()
+    host2.new_form()
+    host2.slug = "alpha"
+    host2.title = "Other"
+    host2.save()
+    assert host2.error and "already" in host2.error.lower()
+    # Dirty select without load does not overwrite
+    host.form_id = "not-loaded-id"
+    host.save()
+    assert host.error and "Load" in host.error
+    host.form_id = host.loaded_form_id
+    # Move grid to root
+    host.move("0.schema.0", "", 0)
+    assert '"type": "Grid"' in host.definition_json or "Grid" in host.definition_json
+
+
+def test_designer_load_form_and_error_paths() -> None:
+    _seed()
+    panel = Panel.make("app").path("/app")
+    host = FormDesignerHost.bind(panel=panel)()
+    host.load_form("missing")
+    assert host.error
+    host.new_form()
+    host.definition_json = "{not-json"
+    host.preview()
+    assert "or-danger" in host.preview_html or True
+    host.definition_json = '{"components":[{"type":"TextInput","name":"n"}]}'
+    host.selected_path = "0"
+    host.add_field("NotReal")
+    assert host.error
+    host.add_field("Section")
+    host.save()
+    assert host.form_id
+    host.load_form(host.form_id)
+    assert host.title
+    host.definition_json = "[]"
+    host.save()
+    assert host.error
+
+
+def test_resources_get_records_and_coerce() -> None:
+    _seed()
+    from almasix_orbit_form_builder.resources.form_resource import FormDefinitionResource
+    from almasix_orbit_form_builder.resources.submission_resource import (
+        FormSubmissionResource,
+    )
+
+    store = get_form_store()
+    form = FormDefinition(
+        slug="r1",
+        title="R1",
+        definition={"components": [{"type": "TextInput", "name": "n", "label": "N"}]},
+        status="published",
+        settings={"handlers": [{"type": "store"}]},
+    )
+    store.save_definition(form)
+    store.save_submission(FormSubmission(form_id=form.id, payload={"n": "v"}))
+    assert FormDefinitionResource.get_records()
+    assert FormSubmissionResource.get_records()
+    FormDefinitionResource.form(Form.make())
+    FormDefinitionResource.table(Table.make())
+    FormSubmissionResource.form(Form.make())
+    FormSubmissionResource.table(Table.make())
+    filled = FormDefinitionResource.mutate_form_data_before_fill(form.to_dict())
+    assert "TextInput" in filled["definition_json"]
+    FormDefinitionResource.mutate_form_data_before_create(
+        {
+            "title": "N",
+            "slug": "n-unique",
+            "status": "draft",
+            "definition_json": '{"components":[]}',
+            "settings_json": "{}",
+        }
+    )
+    FormDefinitionResource.mutate_form_data_before_save(
+        {
+            "id": form.id,
+            "title": "N2",
+            "slug": "n2",
+            "definition_json": "not-json",
+            "settings_json": "not-json",
+        }
+    )
+    preserved = store.get_definition(form.id)
+    assert preserved is not None
+    assert preserved.title == "N2"
+    assert preserved.definition["components"][0]["type"] == "TextInput"
+    from almasix_orbit_form_builder.pages.designer import FormDesignerPage
+    from almasix_orbit_form_builder.pages.fill import FormFillPage
+
+    assert FormDesignerPage.get_conduit_host() is not None
+    assert FormFillPage.get_conduit_host() is not None
+    assert "Conduit" in FormDesignerPage.render()
+    assert "Conduit" in FormFillPage.render()
 
 
 def test_fill_host_persists_and_runs_handlers() -> None:
@@ -320,29 +445,6 @@ def test_hydrate_tabs_steps_blocks_and_flags() -> None:
     assert nested_err
 
 
-def test_designer_load_form_and_error_paths() -> None:
-    _seed()
-    panel = Panel.make("app").path("/app")
-    host = FormDesignerHost.bind(panel=panel)()
-    host.load_form("missing")
-    assert host.error
-    host.new_form()
-    host.definition_json = "{not-json"
-    host.preview()
-    assert "or-danger" in host.preview_html or host.error or True
-    host.definition_json = '{"components":[{"type":"TextInput","name":"n"}]}'
-    host.add_field("NotReal")
-    assert host.error
-    host.add_field("Section")
-    host.save()
-    assert host.form_id
-    host.load_form(host.form_id)
-    assert host.title
-    host.definition_json = "[]"
-    host.save()
-    assert host.error
-
-
 def test_fill_host_unavailable_and_load() -> None:
     _seed()
     panel = Panel.make("app").path("/app")
@@ -356,55 +458,6 @@ def test_fill_host_unavailable_and_load() -> None:
     assert host.error
 
 
-def test_resources_get_records_and_coerce() -> None:
-    _seed()
-    from almasix_orbit_form_builder.resources.form_resource import FormDefinitionResource
-    from almasix_orbit_form_builder.resources.submission_resource import (
-        FormSubmissionResource,
-    )
-
-    store = get_form_store()
-    form = FormDefinition(
-        slug="r1",
-        title="R1",
-        definition={"components": [{"type": "TextInput", "name": "n"}]},
-        status="published",
-    )
-    store.save_definition(form)
-    store.save_submission(FormSubmission(form_id=form.id, payload={"n": "v"}))
-    assert FormDefinitionResource.get_records()
-    assert FormSubmissionResource.get_records()
-    FormDefinitionResource.form(Form.make())
-    FormDefinitionResource.table(Table.make())
-    FormSubmissionResource.form(Form.make())
-    FormSubmissionResource.table(Table.make())
-    FormDefinitionResource.mutate_form_data_before_create(
-        {
-            "title": "N",
-            "slug": "n",
-            "status": "draft",
-            "definition_json": '{"components":[]}',
-            "settings_json": "{}",
-        }
-    )
-    FormDefinitionResource.mutate_form_data_before_save(
-        {
-            "id": form.id,
-            "title": "N2",
-            "slug": "n2",
-            "definition_json": "not-json",
-            "settings_json": "not-json",
-        }
-    )
-    from almasix_orbit_form_builder.pages.designer import FormDesignerPage
-    from almasix_orbit_form_builder.pages.fill import FormFillPage
-
-    assert FormDesignerPage.get_conduit_host() is not None
-    assert FormFillPage.get_conduit_host() is not None
-    assert "Conduit" in FormDesignerPage.render()
-    assert "Conduit" in FormFillPage.render()
-
-
 def test_serialize_and_registry_errors() -> None:
     from almasix_orbit_form_builder.registry import resolve_type
     from almasix_orbit_form_builder.serialize import serialize_component
@@ -416,6 +469,10 @@ def test_serialize_and_registry_errors() -> None:
         pass
     component = TextInput.make("x").label("X")
     assert serialize_component(component)["type"] == "TextInput"
+    grid = Grid.make().columns(3).schema([TextInput.make("a")])
+    dumped = serialize_component(grid)
+    assert dumped.get("columns") == 3
+    assert dumped["schema"][0]["type"] == "TextInput"
     from almasix_orbit_form_builder.models import FormDefinition as FD
     from almasix_orbit_form_builder.models import FormSubmission as FS
 

@@ -4,14 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "almasix-orbit-form-builder"
-version = "0.1.0"
-description = "Orbit plugin — visually build forms from every Orbit field and layout, then collect answers"
+version = "0.2.0"
+description = "Orbit plugin — drag-drop form builder with nested layouts, then collect answers"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [{ name = "Almasix Contributors" }]
 readme = "README.md"
 dependencies = [
-    "almasix-orbit>=0.5.2",
+    "almasix-orbit>=0.5.3",
     "almasix>=0.9.0",
 ]
 

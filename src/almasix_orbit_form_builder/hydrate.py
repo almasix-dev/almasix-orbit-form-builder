@@ -79,7 +79,7 @@ _STRUCTURAL = frozenset(
 )
 
 # Skip non-serializable / internal dump keys from Component.to_dict().
-_SKIP = frozenset({"relationship"}) | _STRUCTURAL
+_SKIP = _STRUCTURAL
 
 
 def _is_plain(value: Any) -> bool:
@@ -101,8 +101,15 @@ def _apply_prop(component: Any, key: str, value: Any) -> None:
     if key in _FLAG_METHODS:
         if value is True:
             method()
-        elif value is False and hasattr(component, f"not_{key}"):
-            getattr(component, f"not_{key}")()
+        elif value is False:
+            inverse = getattr(component, f"not_{key}", None)
+            if callable(inverse):
+                inverse()
+            else:
+                try:
+                    method(False)
+                except TypeError:
+                    return
         return
     if not _is_plain(value):
         return
@@ -175,6 +182,10 @@ def build_form(definition: dict[str, Any], *, name: str = "dynamic") -> Form:
         raise ValueError("Form definition must include a components list")
     form.schema([hydrate_component(c) for c in components if isinstance(c, dict)])
     columns = definition.get("columns")
-    if isinstance(columns, int) and hasattr(form, "columns"):
-        form.columns(columns)
+    try:
+        count = int(columns) if columns is not None and str(columns).strip() != "" else None
+    except (TypeError, ValueError):
+        count = None
+    if isinstance(count, int) and count >= 1 and hasattr(form, "columns"):
+        form.columns(count)
     return form
