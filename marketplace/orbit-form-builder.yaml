@@ -1,0 +1,55 @@
+name: Orbit Form Builder
+slug: orbit-form-builder
+summary: Visually build Orbit forms from every field and layout, then collect answers with handlers.
+description: |
+  ## What it does
+
+  Design dynamic forms inside your Orbit panel using the full Orbit field and
+  layout catalog. Publish a definition, share a fill page, and store answers
+  with optional email, webhook, or custom callable handlers. Multi-tenant panels
+  keep definitions and submissions scoped by tenant.
+
+  ## Install
+
+  ```bash
+  pip install almasix-orbit-form-builder
+  ```
+
+  ```python
+  from almasix_orbit_form_builder import FormBuilderPlugin, bootstrap_memory_store
+
+  bootstrap_memory_store()
+  panel.plugin(FormBuilderPlugin.make().navigation_group("Forms"))
+  ```
+
+  Full README: [almasix-orbit-form-builder](https://github.com/almasix-dev/almasix-orbit-form-builder).
+author: almasix
+categories:
+  - panel-kit
+orbit_versions:
+  - "0.5"
+price: free
+package: almasix-orbit-form-builder
+github_repo: almasix-dev/almasix-orbit-form-builder
+repository: https://github.com/almasix-dev/almasix-orbit-form-builder
+docs_url: https://github.com/almasix-dev/almasix-orbit-form-builder#readme
+homepage: https://orbit.almasix.com/plugins/orbit-form-builder/
+changelog_url: https://github.com/almasix-dev/almasix-orbit-form-builder/releases
+license: MIT
+keywords:
+  - forms
+  - form-builder
+  - surveys
+  - panel
+  - tenancy
+requires_python: ">=3.11"
+thumbnail: /plugins/orbit-form-builder/thumbnail.png
+screenshots:
+  - src: /plugins/orbit-form-builder/screenshot-1.png
+    alt: Orbit form builder designer with palette, definition editor, and live preview
+features:
+  dark_mode: true
+  official: true
+  featured: false
+status: published
+published_at: 2026-09-28
