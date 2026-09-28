@@ -803,7 +803,7 @@ class FormDesignerHost(FormDataMutations, OrbitPageHost):
                 )
             elif kind == "number":
                 fields.append(
-                    f"<label>{e(label)} {hint}<input class=\"or-input\" type=\"number\" "
+                    f'<label>{e(label)} {hint}<input class="or-input" type="number" '
                     f"{self._attr('model', model)} /></label>"
                 )
             elif kind == "choice":
@@ -813,20 +813,20 @@ class FormDesignerHost(FormDataMutations, OrbitPageHost):
                     if item
                 )
                 fields.append(
-                    f"<label>{e(label)} {hint}<select class=\"or-input\" "
-                    f"{self._attr('model', model)}><option value=\"\">—</option>{options}</select></label>"
+                    f'<label>{e(label)} {hint}<select class="or-input" '
+                    f'{self._attr("model", model)}><option value="">—</option>{options}</select></label>'
                 )
             elif kind == "kv":
                 fields.append(self._render_options_editor(label, hint))
             elif kind in {"json", "csv"}:
                 fields.append(
-                    f"<label>{e(label)} {hint}<textarea class=\"or-input\" rows=\"4\" "
+                    f'<label>{e(label)} {hint}<textarea class="or-input" rows="4" '
                     f'placeholder="draft: Draft&#10;published: Published" '
                     f"{self._attr('model', model)}></textarea></label>"
                 )
             else:
                 fields.append(
-                    f"<label>{e(label)} {hint}<input class=\"or-input\" type=\"text\" "
+                    f'<label>{e(label)} {hint}<input class="or-input" type="text" '
                     f"{self._attr('model', model)} /></label>"
                 )
 

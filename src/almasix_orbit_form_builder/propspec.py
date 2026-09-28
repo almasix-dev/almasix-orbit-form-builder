@@ -87,7 +87,9 @@ _TIME_EXTRAS = (
 _FILE_EXTRAS = (
     _row("disk", "text", "Disk"),
     _row("directory", "text", "Directory"),
-    _row("accepted_file_types", "csv", "Accepted types", "Comma-separated, for example image/*,.pdf."),
+    _row(
+        "accepted_file_types", "csv", "Accepted types", "Comma-separated, for example image/*,.pdf."
+    ),
     _row("max_size", "number", "Max size (KB)"),
     _row("min_size", "number", "Min size (KB)"),
     _row("multiple", "bool", "Multiple files"),
