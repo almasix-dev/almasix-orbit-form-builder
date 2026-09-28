@@ -15,10 +15,7 @@ from almasix_orbit_form_builder import FormBuilderPlugin, bootstrap_memory_store
 
 bootstrap_memory_store()  # or DatabaseFormStore() after migrating
 
-panel.plugin(
-    FormBuilderPlugin.make()
-    .navigation_group("Forms")
-)
+panel.plugin(FormBuilderPlugin.make().navigation_group("Forms"))
 ```
 
 For database storage, create the tables from `almasix_orbit_form_builder.migrations.migration_statements()` and:
@@ -29,14 +26,24 @@ from almasix_orbit_form_builder import DatabaseFormStore, set_form_store
 set_form_store(DatabaseFormStore())
 ```
 
+Requires **almasix-orbit ≥ 0.5.3** (custom pages mount Conduit hosts via `get_conduit_host()`).
+
 ## What you get
 
 | Surface | Purpose |
 |---------|---------|
-| **Form builder** page | Palette of all Orbit field/layout types, JSON tree editor, live preview, draft/publish |
-| **Definitions** resource | List and manage form metadata |
+| **Form builder** page | Generous visual canvas (grids/fields look like themselves), filterable component bank, drag-drop with drop-zone highlights, property modal, preview modal with live validation, draft/publish |
+| **Definitions** resource | List metadata (JSON is readonly — edit structure on the builder page) |
 | **Submissions** resource | Inspect answers |
 | **Fill** page (`/forms/fill`) | Respondents submit published forms |
+
+## Designer
+
+1. Filter or browse the **Components** bank; drag onto the canvas or into a layout drop zone (or click to add into the selection).
+2. Root fields follow **Form columns** (default **2**). Nested **Grid** / **Group** show their own column count.
+3. Click a field or layout (or **Edit**) to open the **properties** modal — label, placeholder, validation rules, columns, etc.
+4. **Preview** opens a modal with a fillable form (validates; does not store).
+5. **JSON** / **Handlers** are optional drawers — definition JSON stays a readonly export.
 
 ## Definitions
 
@@ -49,7 +56,14 @@ Forms are stored as JSON that mirrors Orbit’s `to_dict()` shape:
       "type": "Section",
       "heading": "Contact",
       "schema": [
-        { "type": "TextInput", "name": "email", "label": "Email", "required": true }
+        {
+          "type": "Grid",
+          "columns": 2,
+          "schema": [
+            { "type": "TextInput", "name": "email", "label": "Email", "required": true },
+            { "type": "TextInput", "name": "phone", "label": "Phone" }
+          ]
+        }
       ]
     }
   ]
@@ -60,7 +74,7 @@ Forms are stored as JSON that mirrors Orbit’s `to_dict()` shape:
 
 ## Answer handlers
 
-Every submit is **always** persisted first. Then configured handlers run in order:
+Every submit is **always** persisted first. Then configured handlers run in order. Configure them in the designer (store / email / webhook / callable), for example:
 
 ```json
 {
@@ -77,8 +91,9 @@ Every submit is **always** persisted first. Then configured handlers run in orde
 ```python
 from almasix_orbit_form_builder import register_handler
 
-def push_to_crm(form, submission, config):
-    ...
+
+def push_to_crm(form, submission, config): ...
+
 
 register_handler("my_crm", push_to_crm)
 ```
@@ -87,9 +102,9 @@ register_handler("my_crm", push_to_crm)
 
 When the panel has tenancy enabled, the plugin binds `set_tenant_resolver` so definitions and submissions are keyed by `tenant_id` (empty string = global). Use `.without_tenant_resolver()` to skip.
 
-## Limits (v1)
+## Limits
 
-- Designer edits a structured JSON tree (not a free-form canvas).
+- Designer is a **nested tree** with drag-drop (not a free-form pixel canvas).
 - Relationship / upload-heavy fields work with static serializable props; advanced callables need named handlers.
 - Fill page lives at `forms/fill` — set `form_slug` on the host (or open via the UI) for the published slug.
 

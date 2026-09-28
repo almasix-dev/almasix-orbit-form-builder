@@ -84,8 +84,14 @@ class MemoryFormStore:
         self.submissions: dict[str, FormSubmission] = {}
 
     def list_definitions(self, *, tenant_id: str | None = None) -> list[FormDefinition]:
-        tid = _tenant(tenant_id)
-        return [f for f in self.definitions.values() if f.tenant_id == tid]
+        tid = str(_tenant(tenant_id))
+        rows = [f for f in self.definitions.values() if str(f.tenant_id) == tid]
+        if tid and tid != GLOBAL_TENANT_ID:
+            seen = {f.id for f in rows}
+            for form in self.definitions.values():
+                if form.id not in seen and str(form.tenant_id) in ("", GLOBAL_TENANT_ID):
+                    rows.append(form)
+        return rows
 
     def get_definition(
         self, form_id: str, *, tenant_id: str | None = None

@@ -117,6 +117,43 @@ LAYOUT_TYPES: dict[str, type[Any]] = {
 
 COMPONENT_TYPES: dict[str, type[Any]] = {**FIELD_TYPES, **LAYOUT_TYPES}
 
+# Layout types that accept nested children in the designer tree.
+CONTAINER_TYPES: frozenset[str] = frozenset(
+    {"Grid", "Flex", "Group", "Split", "Section", "Fieldset", "Tabs", "Wizard"}
+)
+
+# Inspector keys applicable per type (plus universal name/label when present).
+INSPECTOR_KEYS: dict[str, tuple[str, ...]] = {
+    "Grid": ("columns", "column_span", "dense"),
+    "Group": ("columns", "column_span", "dense"),
+    "Section": ("heading", "description", "collapsible", "collapsed", "column_span"),
+    "Fieldset": ("label", "column_span"),
+    "Flex": ("column_span", "grow"),
+    "Split": ("column_span",),
+    "Tabs": ("column_span",),
+    "Wizard": ("column_span",),
+    "_Tab": ("label",),
+    "_Step": ("label", "description"),
+}
+
+# Common field props shown in the properties modal.
+FIELD_PROP_KEYS: tuple[str, ...] = (
+    "label",
+    "name",
+    "placeholder",
+    "helper_text",
+    "hint",
+    "default",
+    "required",
+    "readonly",
+    "disabled",
+    "hidden",
+    "column_span",
+    "rules",
+    "max_length",
+    "min_length",
+)
+
 # Palette groups shown in the visual designer.
 PALETTE: list[dict[str, Any]] = [
     {

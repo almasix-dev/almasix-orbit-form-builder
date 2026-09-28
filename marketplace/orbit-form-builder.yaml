@@ -4,10 +4,11 @@ summary: Visually build Orbit forms from every field and layout, then collect an
 description: |
   ## What it does
 
-  Design dynamic forms inside your Orbit panel using the full Orbit field and
-  layout catalog. Publish a definition, share a fill page, and store answers
-  with optional email, webhook, or custom callable handlers. Multi-tenant panels
-  keep definitions and submissions scoped by tenant.
+  Design dynamic forms inside your Orbit panel with a drag-drop tree canvas,
+  nested layouts (sections, grids, columns), an inspector, and a live preview.
+  Definition JSON is a readonly export. Publish a form, share a fill page, and
+  store answers with optional email, webhook, or custom callable handlers.
+  Multi-tenant panels keep definitions and submissions scoped by tenant.
 
   ## Install
 
@@ -22,7 +23,7 @@ description: |
   panel.plugin(FormBuilderPlugin.make().navigation_group("Forms"))
   ```
 
-  Full README: [almasix-orbit-form-builder](https://github.com/almasix-dev/almasix-orbit-form-builder).
+  Requires Orbit 0.5.3+. Full README: [almasix-orbit-form-builder](https://github.com/almasix-dev/almasix-orbit-form-builder).
 author: almasix
 categories:
   - panel-kit
@@ -46,7 +47,7 @@ requires_python: ">=3.11"
 thumbnail: /plugins/orbit-form-builder/thumbnail.png
 screenshots:
   - src: /plugins/orbit-form-builder/screenshot-1.png
-    alt: Orbit form builder designer with palette, definition editor, and live preview
+    alt: Orbit form builder designer with palette, tree canvas, and live preview
 features:
   dark_mode: true
   official: true

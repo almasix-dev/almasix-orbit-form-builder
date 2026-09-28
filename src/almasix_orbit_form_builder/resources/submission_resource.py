@@ -20,6 +20,7 @@ class FormSubmissionResource(Resource):
     record_title_attribute = "id"
     model_label = "Submission"
     records_mutable = False
+    is_scoped_to_tenant = False
     records: ClassVar[list[dict[str, Any]]] = []
 
     @classmethod
